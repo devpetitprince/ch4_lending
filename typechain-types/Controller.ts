@@ -29,6 +29,7 @@ export interface ControllerInterface extends utils.Interface {
     "allMarkets(uint256)": FunctionFragment;
     "borrowAllowed(address,address,uint256)": FunctionFragment;
     "borrowStable(uint256)": FunctionFragment;
+    "borrowStableBalance(address)": FunctionFragment;
     "checkAccountliquidity(address,address,uint256,uint256)": FunctionFragment;
     "enterMarket(address)": FunctionFragment;
     "exitMarket(address)": FunctionFragment;
@@ -41,6 +42,7 @@ export interface ControllerInterface extends utils.Interface {
     "repayStable(uint256)": FunctionFragment;
     "setPrice(address,uint256)": FunctionFragment;
     "setStableCoin(address)": FunctionFragment;
+    "stableCoin()": FunctionFragment;
     "supportMarket(address)": FunctionFragment;
     "tokenPrices(address)": FunctionFragment;
   };
@@ -51,6 +53,7 @@ export interface ControllerInterface extends utils.Interface {
       | "allMarkets"
       | "borrowAllowed"
       | "borrowStable"
+      | "borrowStableBalance"
       | "checkAccountliquidity"
       | "enterMarket"
       | "exitMarket"
@@ -63,6 +66,7 @@ export interface ControllerInterface extends utils.Interface {
       | "repayStable"
       | "setPrice"
       | "setStableCoin"
+      | "stableCoin"
       | "supportMarket"
       | "tokenPrices"
   ): FunctionFragment;
@@ -86,6 +90,10 @@ export interface ControllerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "borrowStable",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "borrowStableBalance",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "checkAccountliquidity",
@@ -145,6 +153,10 @@ export interface ControllerInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
+    functionFragment: "stableCoin",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "supportMarket",
     values: [PromiseOrValue<string>]
   ): string;
@@ -164,6 +176,10 @@ export interface ControllerInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "borrowStable",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "borrowStableBalance",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -205,6 +221,7 @@ export interface ControllerInterface extends utils.Interface {
     functionFragment: "setStableCoin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "stableCoin", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportMarket",
     data: BytesLike
@@ -266,6 +283,11 @@ export interface Controller extends BaseContract {
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    borrowStableBalance(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     checkAccountliquidity(
       account: PromiseOrValue<string>,
@@ -335,6 +357,8 @@ export interface Controller extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    stableCoin(overrides?: CallOverrides): Promise<[string]>;
+
     supportMarket(
       cToken: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -368,6 +392,11 @@ export interface Controller extends BaseContract {
     amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  borrowStableBalance(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   checkAccountliquidity(
     account: PromiseOrValue<string>,
@@ -437,6 +466,8 @@ export interface Controller extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  stableCoin(overrides?: CallOverrides): Promise<string>;
+
   supportMarket(
     cToken: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -470,6 +501,11 @@ export interface Controller extends BaseContract {
       amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    borrowStableBalance(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     checkAccountliquidity(
       account: PromiseOrValue<string>,
@@ -539,6 +575,8 @@ export interface Controller extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    stableCoin(overrides?: CallOverrides): Promise<string>;
+
     supportMarket(
       cToken: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -574,6 +612,11 @@ export interface Controller extends BaseContract {
     borrowStable(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    borrowStableBalance(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     checkAccountliquidity(
@@ -640,6 +683,8 @@ export interface Controller extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    stableCoin(overrides?: CallOverrides): Promise<BigNumber>;
+
     supportMarket(
       cToken: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -673,6 +718,11 @@ export interface Controller extends BaseContract {
     borrowStable(
       amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    borrowStableBalance(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     checkAccountliquidity(
@@ -738,6 +788,8 @@ export interface Controller extends BaseContract {
       _stableCoin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    stableCoin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     supportMarket(
       cToken: PromiseOrValue<string>,

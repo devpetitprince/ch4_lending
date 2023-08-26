@@ -46,12 +46,14 @@ describe("Controller Test", function () {
             await controller.supportMarket(cFISH.address)
             const afterNumMarket = await controller.marketLength()
             
-            // TODO check expected results when execute supportMarket again
+            utils.assertEqual(beforeNumMarket, 0)
+            utils.assertEqual(afterNumMarket, 1)
+            utils.assertEqual((await controller.markets(cFISH.address)).isListed, true)
         })
         it("supportMaket: revert if duplicated", async () => {
             await controller.supportMarket(cFISH.address)
             
-            // TODO check expected results when execute supportMarket again
+            await utils.assertRevert(controller.supportMarket(cFISH.address), "already listed!")
         })
         it("enterMarket", async () => {
             await controller.supportMarket(cFISH.address)
@@ -61,7 +63,9 @@ describe("Controller Test", function () {
             const membershipAfter = await controller.getAccountMembership(cFISH.address, user.address)
             const userAsset = await controller.accountAssets(user.address, 0)
             
-            // TODO check expected results when execute enterMarket
+            utils.assertEqual(membershipBefore, false)
+            utils.assertEqual(membershipAfter, true)
+            utils.assertEqual(userAsset, cFISH.address)
         })
         it("exitMarket", async () => {
             await controller.supportMarket(cFISH.address)
@@ -71,15 +75,18 @@ describe("Controller Test", function () {
             await controller.connect(user).exitMarket(cFISH.address)
             const membershipAfter = await controller.getAccountMembership(cFISH.address, user.address)
 
-            // TODO check expected results when execute exitMarket
+            utils.assertEqual(membershipBefore, true)
+            utils.assertEqual(membershipAfter, false)
         })
         it("exitMarket: revert if remain borrow", async () => {
             await controller.supportMarket(cFISH.address)
             await controller.setPrice(fish.address, utils.UNIT.mul(10)) // 1 FISH = $10
+            await cFISH.connect(user).mint(utils.toEther(1000))
             
-            // TODO mint cFISH and borrow FISH
+            await controller.connect(user).enterMarket(cFISH.address)
+            await cFISH.connect(user).borrow(utils.toEther(1))
             
-            // TODO check expected results when execute exitMarket with remaining debt
+            await utils.assertRevert(controller.connect(user).exitMarket(cFISH.address), "non-zero borrow amount")
         })
     })
 
@@ -109,13 +116,15 @@ describe("Controller Test", function () {
         })
 
         it("borrowAllowed", async () => {
-            // max borrowable value = ???
-            // max borrowable FISH = ???
-            // max borrowable WHALE = ???
+            // max borrowable value = (1000 * 0.6 + 1000 * 0.6) = $1200
+            // max borrowable FISH = $1200 / $10 = 120
+            // max borrowable WHALE = $1200 / $50 = 24
             
-            // TODO check borrowAllowed both success & fail cases with FISH
-
-            // TODO check borrowAllowed both success & fail cases with WHALE
+            utils.assertEqual(await controller.borrowAllowed(cFISH.address, user.address, utils.toEther(120)), true)
+            utils.assertEqual(await controller.borrowAllowed(cFISH.address, user.address, utils.toEther(121)), false)
+            
+            utils.assertEqual(await controller.borrowAllowed(cWHALE.address, user.address, utils.toEther(24)), true)
+            utils.assertEqual(await controller.borrowAllowed(cWHALE.address, user.address, utils.toEther(24.1)), false)
         })
 
         it("redeemAllowed", async () => {
@@ -123,13 +132,15 @@ describe("Controller Test", function () {
             await cFISH.connect(user).borrow(utils.toEther(80))
 
             // current borrow value = 80 FISH * $10 = $800
-            // max redeemable value = ???
-            // max redeemable FISH = ???
-            // max redeemable WHALE = ???
+            // max redeemable value = $1200 - $800 = $400
+            // max redeemable FISH = min(100, ($400 / $10) / 0.6 = 66.67) = 66.66.. FISH
+            // max redeemable WHALE = min(20, ($400 / $50) / 0.6 = 14) = 13.33... WHALE
+
+            utils.assertEqual(await controller.redeemAllowed(cFISH.address, user.address, utils.toEther(66.66)), true)
+            utils.assertEqual(await controller.redeemAllowed(cFISH.address, user.address, utils.toEther(66.67)), false)
             
-            // TODO check redeemAllowed both success & fail cases with FISH
-            
-            // TODO check redeemAllowed both success & fail cases with WHALE
+            utils.assertEqual(await controller.redeemAllowed(cWHALE.address, user.address, utils.toEther(13.33)), true)
+            utils.assertEqual(await controller.redeemAllowed(cWHALE.address, user.address, utils.toEther(13.34)), false)
         })
 
         describe("Test Stable coin", async () => {
@@ -153,7 +164,8 @@ describe("Controller Test", function () {
 
                 utils.assertEqual(afterStable.sub(beforeStable), borrowAmount)
                 
-                // TODO check revert if exceed borrowable amount
+                // revert if exceed borrowable amount
+                await utils.assertRevert(controller.connect(user).borrowStable(utils.toEther(1)), "exceed borrowable amount")
             })
             it("repay StableCoin", async () => {
                 const borrowAmount = utils.toEther(1200)
@@ -163,8 +175,8 @@ describe("Controller Test", function () {
                 const beforeBorrow = await controller.borrowStableBalance(user.address)
                 await controller.connect(user).repayStable(repayAmount)
                 const afterBorrow = await controller.borrowStableBalance(user.address)
-                
-                // TODO check repay
+
+                utils.assertEqual(beforeBorrow.sub(afterBorrow), repayAmount)
             })
         })
     })
